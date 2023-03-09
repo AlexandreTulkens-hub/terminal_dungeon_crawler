@@ -28,6 +28,14 @@ class Pos2D:
         """returns the value of y"""
         return self.y
 
+    def __hash__(self):
+        """
+        hashes the data stocked in this class
+        :return: hashed data
+        :rtype: int
+        """
+        return hash((self.value1, self.value2))
+
     def __eq__(self, other):
         """
         Compare this Pos2D object to another object for equality.
@@ -40,6 +48,3 @@ class Pos2D:
         if not isinstance(other, Pos2D):  # Check if the other object is of type Pos2D
             return False  # if it's not, the equality will not be executed
         return self.x == other.x and self.y == other.y
-
-    def __hash__(self):
-        return hash((self.value1, self.value2))

@@ -4,7 +4,7 @@ Prénom : Alexandre
 Matricule : 000575251
 """
 from pos2d import Pos2D
-
+from box import Box
 
 
 class Node:
@@ -67,7 +67,7 @@ class Node:
 class Grid:
     def __init__(self, width: int, height: int):
         """
-        Create a new Grid object with the given width and height.
+        Create a new Grid object with the given width and height and sets the borders of the grid.
 
         :param width: The width of the grid
         :param height: The height of the grid.
@@ -174,6 +174,24 @@ class Grid:
                 self.grid[pos2.y][pos2.x].left = True
                 self.grid[pos1.y][pos1.x].right = True
 
+    def isolate_box(self, box: Box):
+        """
+        sets the box borders
+
+        :param box: box we want to draw in the grid
+        :return: None
+        """
+        for row in range(box.height):
+            for column in range(box.width):
+                if row == 0:  # Sets upper box border
+                    self.grid[box.top_l.y][box.top_l.x + column].up = False
+                if row == (box.height - 1):  # Sets lower box border
+                    self.grid[box.top_l.y + row][box.top_l.x + column].down = False
+                if column == 0:  # Sets left box border
+                    self.grid[box.top_l.y + row][box.top_l.x].left = False
+                if column == (box.width - 1):  # Sets right box border
+                    self.grid[box.top_l.y + row][box.top_l.x + column].right = False
+
     def accessible_neighbours(self, pos: Pos2D):
         """
         gets the accessible neighbours (neighbours that have no wall between them and pos)
@@ -196,6 +214,5 @@ class Grid:
             neighbours.append(Pos2D(pos.x + 1, pos.y))
 
         return neighbours
-
 
 

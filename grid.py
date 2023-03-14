@@ -36,7 +36,7 @@ class Node:
     @property
     def down(self):
         """returns the value of down"""
-        return self.__up
+        return self.__down
 
     @down.setter
     def down(self, value):
@@ -46,7 +46,7 @@ class Node:
     @property
     def left(self):
         """returns the value of left"""
-        return self.__up
+        return self.__left
 
     @left.setter
     def left(self, value):
@@ -56,7 +56,7 @@ class Node:
     @property
     def right(self):
         """returns the value of right"""
-        return self.__up
+        return self.__right
 
     @right.setter
     def right(self, value):
@@ -72,26 +72,52 @@ class Grid:
         :param width: The width of the grid
         :param height: The height of the grid.
         """
-        self.width = width
-        self.height = height
+        self.__width = width
+        self.__height = height
         self.grid = []  # Create the base of the grid
         #  filling the grid with borders
-        for i in range(height - 1):
+        for i in range(height):
             row = []
-            #  Border settings to no wall
-            upper = lower = left = right = True
-
             if i == 0:  # Sets upper grid border
                 upper = False
+            else:
+                upper = True
             if i == (height - 1):  # Sets lower grid border
                 lower = False
-            for j in range(width - 1):
+            else:
+                lower = True
+            for j in range(width):
                 if j == 0:  # Sets left grid border
                     left = False
+                else:
+                    left = True
                 if j == (width - 1):  # Sets right grid border
                     right = False
+                else:
+                    right = True
                 row.append(Node(upper, lower, left, right))
             self.grid.append(row)
+
+    def __getitem__(self, index: tuple):
+        """method that allows instances of the class to be accessed using square brackets"""
+        row, column = index
+        return self.grid[row][column]
+
+    def __setitem__(self, index: tuple, value: any):
+        """method that allows instances of the class to change a cell by using square brackets"""
+        row, column = index
+        self.grid[row][column] = value
+
+
+    @property
+    def width(self):
+        """returns width of grid"""
+        return self.__width
+
+    @property
+    def height(self):
+        """returns height of grid"""
+        return self.__height
 
     def get_neighbours(self, point: Pos2D):
         """
@@ -202,17 +228,15 @@ class Grid:
         :rtype: List[Pos2D]
         """
         neighbours = []
-        box = self.grid[pos.y][pos.x]  # box of which we want the accessible neighbours
+        cell = self.grid[pos.y][pos.x]  # cell of which we want the accessible neighbours
         # !! when no wall Node object will contain True
-        if box.up:
+        if cell.up:
             neighbours.append(Pos2D(pos.x, pos.y - 1))
-        if box.down:
+        if cell.down:
             neighbours.append(Pos2D(pos.x, pos.y + 1))
-        if box.left:
+        if cell.left:
             neighbours.append(Pos2D(pos.x - 1, pos.y))
-        if box.right:
+        if cell.right:
             neighbours.append(Pos2D(pos.x + 1, pos.y))
 
         return neighbours
-
-

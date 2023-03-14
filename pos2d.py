@@ -11,22 +11,20 @@ class Pos2D:
         Create a new Pos2D object with the given x and y coordinates.
 
         :param x: The x-coordinate of the position.
-        :type x: int
         :param y: The y-coordinate of the position.
-        :type y: int
         """
-        self.x = x
-        self.y = y
+        self.__x = x
+        self.__y = y
 
     @property
     def x(self):
         """returns the value of x"""
-        return self.x
+        return self.__x
 
     @property
     def y(self):
         """returns the value of y"""
-        return self.y
+        return self.__y
 
     def __hash__(self):
         """
@@ -34,7 +32,7 @@ class Pos2D:
         :return: hashed data
         :rtype: int
         """
-        return hash((self.value1, self.value2))
+        return hash((self.__x, self.__y))
 
     def __eq__(self, other):
         """
@@ -46,5 +44,5 @@ class Pos2D:
         :rtype: bool
         """
         if not isinstance(other, Pos2D):  # Check if the other object is of type Pos2D
-            return False  # if it's not, the equality will not be executed
+            return NotImplemented  # if it's not, the equality will not be executed
         return self.x == other.x and self.y == other.y

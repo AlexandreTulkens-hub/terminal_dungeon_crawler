@@ -29,6 +29,7 @@ class Pos2D:
     def __hash__(self):
         """
         hashes the data stocked in this class
+
         :return: hashed data
         :rtype: int
         """

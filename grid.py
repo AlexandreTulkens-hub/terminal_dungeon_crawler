@@ -108,7 +108,6 @@ class Grid:
         row, column = index
         self.grid[row][column] = value
 
-
     @property
     def width(self):
         """returns width of grid"""

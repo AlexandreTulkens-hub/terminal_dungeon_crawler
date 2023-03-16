@@ -10,22 +10,12 @@ class Box:
     def __init__(self, pos1: Pos2D, pos2: Pos2D):
         self.__top_left = pos1
         self.__bot_right = pos2
-        self.__top_right = Pos2D(pos2.x, pos1.y)
-        self.__bot_left = Pos2D(pos1.x, pos2.y)
-        self.width = pos2.x - pos1.x + 1
-        self.height = pos2.y - pos1.y + 1
+        self.__width = pos2.x - pos1.x + 1
+        self.__height = pos2.y - pos1.y + 1
 
     @property
     def top_l(self):
         return self.__top_left
-
-    @property
-    def top_r(self):
-        return self.__top_right
-
-    @property
-    def bot_l(self):
-        return self.__bot_left
 
     @property
     def bot_r(self):
@@ -33,8 +23,8 @@ class Box:
 
     @property
     def width(self):
-        return self.width
+        return self.__width
 
     @property
     def height(self):
-        return self.height
+        return self.__height

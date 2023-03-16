@@ -9,11 +9,12 @@ from pos2d import Pos2D
 
 class GridRenderer:
     # Top left corner wall dictionary
-    TL_WALL = {(True, False, True, False): "─", (False, True, True, False): "┌", (False, False, True, True): "┐",
-               (False, False, True, False): "┬", (True, True, False, False): "└", (False, True, False, True): "│",
-               (False, True, False, False): "├", (True, False, False, True): "┘", (True, False, False, False): "┴",
-               (False, False, False, True): "┤", (False, False, False, False): "┼", (True, True, True, True): " ",
-               (False, True, True, True): " "}
+    TL_WALL = {(True, False, True, False): "─", (False, True, False, True): "│", (True, False, False, True): "┘",
+               (False, True, True, False): "┌", (True, True, False, False): "└", (False, False, True, True): "┐",
+               (True, True, False, True): " ", (False, False, True, False): "┬", (True, True, True, False): "─",
+               (False, False, False, True): "┤", (True, False, False, False): "┴", (False, True, True, True): " ",
+               (True, True, True, True): " ", (False, False, False, False): "┼", (True, False, True, True): " ",
+               (False, True, False, False): "├"}
 
     def __init__(self, grid: Grid):
         self.grid = grid

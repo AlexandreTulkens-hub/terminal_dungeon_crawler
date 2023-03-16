@@ -3,8 +3,8 @@ Nom : Tulkens
 Prénom : Alexandre
 Matricule : 000575251
 """
-import random
 import argparse
+import random
 from grid import Grid
 from pos2d import Pos2D
 from box import Box
@@ -51,6 +51,7 @@ class DungeonGenerator:
         self.minheight = params.minheight
         self.maxheight = params.maxheight
         self.openings = params.openings
+        self.hard = params.hard
 
     def create_rooms_coordinates(self):
         """
@@ -91,11 +92,12 @@ class DungeonGenerator:
         :rtype: dict
         """
         grid = Grid(self.width, self.height)
-        rooms = self.create_rooms_coordinates()
-        # create rooms
-        for element in rooms:
-            room = Box(element[0], element[1])
-            grid.isolate_box(room)
-
-
-
+        if self.hard:
+            grid = grid.spanning_tree()
+        else:
+            rooms = self.create_rooms_coordinates()
+            # create rooms
+            for element in rooms:
+                room = Box(element[0], element[1])
+                grid.isolate_box(room)
+        return {'grid': grid}

@@ -69,33 +69,18 @@ class Node:
 
 def dfs(grid, pos: Pos2D):
 
-    current_cell = grid[pos.y][pos.x]
+    current_cell = grid[pos.y, pos.x]
+    current_cell.been_there = True
     accessible_neighbours = grid.accessible_neighbours(pos)
-    an_len = len(accessible_neighbours)
-    if an_len == 0:
-        return
-    else:
-        for i in range(an_len):
-            rand_neighbour = accessible_neighbours[randint(0, an_len - 1 - i)]
-            potential_cell = grid[rand_neighbour.y][rand_neighbour.x]
-            possible = True
+    for i in range(len(accessible_neighbours)):
+        rand_neighbour = accessible_neighbours.pop(randint(0, (len(accessible_neighbours) - 1)))
+        potential_cell = grid[rand_neighbour.y, rand_neighbour.x]
 
-            if rand_neighbour.y > pos.y:
-                if not potential_cell.up or potential_cell.been_there:
-                    possible = False
-                    current_cell.down = False
-            elif rand_neighbour.y < pos.y:
-                if not potential_cell.down:
-                    possible = False
-                    current_cell.up = False
-            elif rand_neighbour.x < pos.x:
-                if not potential_cell.right:
-                    possible = False
-                    current_cell.left = False
-            else:
-                if not potential_cell.left:
-                    possible = False
-                    current_cell.right = False
+        if potential_cell.been_there:
+            grid.add_wall(pos, rand_neighbour)
+        else:
+            dfs(grid, rand_neighbour)
+            grid.remove_wall(pos, rand_neighbour)
 
 
 class Grid:
@@ -251,11 +236,11 @@ class Grid:
                 if row == 0:  # Sets upper box border
                     self.grid[box.top_l.y][box.top_l.x + column].up = False
                 if row == (box.height - 1):  # Sets lower box border
-                    self.grid[box.top_l.y + row][box.top_l.x + column].down = False
+                    self.grid[box.bot_r.y][box.top_l.x + column].down = False
                 if column == 0:  # Sets left box border
                     self.grid[box.top_l.y + row][box.top_l.x].left = False
                 if column == (box.width - 1):  # Sets right box border
-                    self.grid[box.top_l.y + row][box.top_l.x + column].right = False
+                    self.grid[box.top_l.y + row][box.bot_r.x].right = False
 
     def accessible_neighbours(self, pos: Pos2D):
         """
@@ -289,7 +274,5 @@ class Grid:
         """
         spanningTree = deepcopy(self)
         start_pos = Pos2D(randint(0, self.width - 1), randint(0, self.height - 1))
-        if dfs(spanningTree, start_pos):
-            return spanningTree
-        else:
-            return None
+        dfs(spanningTree, start_pos)
+        return spanningTree

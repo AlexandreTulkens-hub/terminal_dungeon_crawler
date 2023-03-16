@@ -5,6 +5,8 @@ Matricule : 000575251
 """
 from pos2d import Pos2D
 from box import Box
+from copy import deepcopy
+from random import randint
 
 
 class Node:
@@ -22,6 +24,7 @@ class Node:
         self.__down = down
         self.__left = left
         self.__right = right
+        self.been_there = False  # Used in DFS
 
     @property
     def up(self):
@@ -62,6 +65,37 @@ class Node:
     def right(self, value):
         """sets the value of right"""
         self.__right = value
+
+
+def dfs(grid, pos: Pos2D):
+
+    current_cell = grid[pos.y][pos.x]
+    accessible_neighbours = grid.accessible_neighbours(pos)
+    an_len = len(accessible_neighbours)
+    if an_len == 0:
+        return
+    else:
+        for i in range(an_len):
+            rand_neighbour = accessible_neighbours[randint(0, an_len - 1 - i)]
+            potential_cell = grid[rand_neighbour.y][rand_neighbour.x]
+            possible = True
+
+            if rand_neighbour.y > pos.y:
+                if not potential_cell.up or potential_cell.been_there:
+                    possible = False
+                    current_cell.down = False
+            elif rand_neighbour.y < pos.y:
+                if not potential_cell.down:
+                    possible = False
+                    current_cell.up = False
+            elif rand_neighbour.x < pos.x:
+                if not potential_cell.right:
+                    possible = False
+                    current_cell.left = False
+            else:
+                if not potential_cell.left:
+                    possible = False
+                    current_cell.right = False
 
 
 class Grid:
@@ -107,6 +141,12 @@ class Grid:
         """method that allows instances of the class to change a cell by using square brackets"""
         row, column = index
         self.grid[row][column] = value
+
+    def __deepcopy__(self, memo):
+        """method that allows the grid of instances of the class to be deep copied"""
+        new_grid = Grid(self.width, self.height)  # Create a new instance of the Array class
+        new_grid.grid = deepcopy(self.grid, memo)  # Deep copy the grid attribute
+        return new_grid
 
     @property
     def width(self):
@@ -239,3 +279,17 @@ class Grid:
             neighbours.append(Pos2D(pos.x + 1, pos.y))
 
         return neighbours
+
+    def spanning_tree(self):
+        """
+        Extracts a spanning tree out of the grid
+
+        :return: new instance of Grid object
+        :rtype: Grid
+        """
+        spanningTree = deepcopy(self)
+        start_pos = Pos2D(randint(0, self.width - 1), randint(0, self.height - 1))
+        if dfs(spanningTree, start_pos):
+            return spanningTree
+        else:
+            return None

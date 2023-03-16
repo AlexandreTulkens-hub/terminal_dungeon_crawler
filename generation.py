@@ -96,3 +96,6 @@ class DungeonGenerator:
         for element in rooms:
             room = Box(element[0], element[1])
             grid.isolate_box(room)
+
+
+

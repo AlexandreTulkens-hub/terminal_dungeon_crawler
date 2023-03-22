@@ -8,9 +8,18 @@ import random
 from grid import Grid
 from pos2d import Pos2D
 from box import Box
+from renderer import GridRenderer
 
 
-def rooms_overlapping(existing_r, r):
+def rooms_overlapping(existing_r: Pos2D, r: Pos2D):
+    """
+    verifies if 2 rooms overlap or not
+
+    :param existing_r: room that already exists
+    :param r: new potential room
+    :return: True if the new potential room can't be created, False otherwise
+    :rtype: bool
+    """
     ex_tl_x = existing_r[0].x - 2
     ex_tl_y = existing_r[0].y - 2
     ex_br_x = existing_r[1].x + 2
@@ -27,23 +36,7 @@ def rooms_overlapping(existing_r, r):
 class DungeonGenerator:
 
     def __init__(self, params: argparse.Namespace):
-        parser = argparse.ArgumentParser(description='Create a DungeonGenerator object')
 
-        arguments = {'width': {'help': 'Width of the dungeon'},
-                     'height': {'help': 'Height of the dungeon'},
-                     '--rooms': {'default': 5, 'help': 'Number of rooms to generate (default: 5)'},
-                     '--seed': {'default': None, 'help': 'Seed for RNG (default: None)'},
-                     '--minwidth': {'default': 4, 'help': 'Min width of a room (default: 4)'},
-                     '--maxwidth': {'default': 8, 'help': 'Max width of a room (default: 8)'},
-                     '--minheight': {'default': 4, 'help': 'Min height of a room (default: 4)'},
-                     '--maxheight': {'default': 8, 'help': 'Max height of a room (default: 8)'},
-                     '--openings': {'default': 2, 'help': 'Number of openings per room (default: 2)'}}
-        # add the arguments to parser
-        for arg, properties in arguments.items():
-            parser.add_argument(arg, **properties)
-
-        self.width = params.width
-        self.height = params.height
         self.rooms = params.rooms
         self.seed = params.seed
         self.minwidth = params.minwidth
@@ -52,6 +45,8 @@ class DungeonGenerator:
         self.maxheight = params.maxheight
         self.openings = params.openings
         self.hard = params.hard
+        self.width = params.width
+        self.height = params.height
 
     def create_rooms_coordinates(self):
         """
@@ -61,12 +56,12 @@ class DungeonGenerator:
         :rtype: List[List[Pos2D]]
         """
         nb_rooms = self.rooms
-        rooms_coordinates = []
+        rooms_coordinates = set()
         # max coordinates of tl corner of a room
         x_max = self.width - self.minwidth - 2  # - 2 because room need to have a distance of 1 with the borders of grid
         y_max = self.height - self.minheight - 2
         for i in range(nb_rooms):
-            room = []
+            room = tuple()
             found = False
             while not found:
                 x_tl = random.randint(1, x_max)
@@ -75,13 +70,35 @@ class DungeonGenerator:
                 x_br = random.randint(x_tl + self.minwidth, min(x_tl + self.maxwidth, self.width - 2))
                 y_br = random.randint(y_tl + self.minheight, min(y_tl + self.maxheight, self.height - 2))
 
-                room = [Pos2D(x_tl, y_tl), Pos2D(x_br, y_br)]
+                room = (Pos2D(x_tl, y_tl), Pos2D(x_br, y_br))
                 if not any(rooms_overlapping(existing_room, room) for existing_room in rooms_coordinates):
                     found = True
 
-            rooms_coordinates.append(room)
+            rooms_coordinates.add(room)
 
         return rooms_coordinates
+
+    def merge_spanning_tree(self, span1: Grid, span2: Grid):
+        """
+        Merges the two mazes together by keeping the walls in common
+
+        :param span1: first generated maze using dfs
+        :param span2: second generated maze using dfs
+        :return dungeon: the dungeon without the entrances
+        :rtype: Grid
+        """
+        dungeon = Grid(self.width, self.height)
+        for row in range(self.height):
+            for column in range(self.width):
+                if not span1[row, column].up and not span2[row, column].up:
+                    dungeon[row, column].up = False
+                if not span1[row, column].down and not span2[row, column].down:
+                    dungeon[row, column].down = False
+                if not span1[row, column].left and not span2[row, column].left:
+                    dungeon[row, column].left = False
+                if not span1[row, column].right and not span2[row, column].right:
+                    dungeon[row, column].right = False
+        return dungeon
 
     def generate(self):
         """
@@ -91,13 +108,29 @@ class DungeonGenerator:
              - 'grid': (Grid) the grid containing the dungeon.
         :rtype: dict
         """
-        grid = Grid(self.width, self.height)
+        dungeon = Grid(self.width, self.height)  # create empty dungeon
+        boxes = []  # going to contain all the rooms
+        rooms = self.create_rooms_coordinates()  # create rooms
+        # add rooms to dungeon
+        counter = 0
+        for room in rooms:
+            boxes.append(Box(room[0], room[1]))
+            dungeon.isolate_box(boxes[counter])
+            counter += 1
         if self.hard:
-            grid = grid.spanning_tree()
+            dungeon = dungeon.spanning_tree()
         else:
-            rooms = self.create_rooms_coordinates()
-            # create rooms
-            for element in rooms:
-                room = Box(element[0], element[1])
-                grid.isolate_box(room)
-        return {'grid': grid}
+            # create the two mazes that will get merged
+            span1 = dungeon.spanning_tree()
+            GridRenderer(span1).show()
+            span2 = dungeon.spanning_tree()
+            GridRenderer(span2).show()
+
+            dungeon = self.merge_spanning_tree(span1, span2)
+
+        # create the entrances/exits
+        for box in boxes:
+            opening = box.opening_coordinates()
+            dungeon.remove_wall(opening[0], opening[1])
+
+        return {'grid': dungeon}

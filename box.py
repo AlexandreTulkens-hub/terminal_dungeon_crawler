@@ -4,6 +4,7 @@ Prénom : Alexandre
 Matricule : 000575251
 """
 from pos2d import Pos2D
+from random import randint
 
 
 class Box:
@@ -28,3 +29,27 @@ class Box:
     @property
     def height(self):
         return self.__height
+
+    def opening_coordinates(self):
+        """
+        creates the coordinates between which there will be the entrance/exit of the box
+
+        :return opening: coordinates of box opening
+        :rtype: tuple(Pos2D)
+        """
+
+        x = randint(self.top_l.x, self.bot_r.x)
+        if x == self.top_l.x or x == self.bot_r.x:
+            y = randint(self.top_l.y, self.bot_r.y)
+            if x == self.top_l.x:
+                opening = (Pos2D(self.top_l.x, y), Pos2D(self.top_l.x - 1, y))
+            else:
+                opening = (Pos2D(self.bot_r.x, y), Pos2D(self.bot_r.x + 1, y))
+        else:
+            random = randint(0, 1)
+            if not random:
+                opening = (Pos2D(x, self.top_l.y), Pos2D(x, self.top_l.y - 1))
+            else:
+                opening = (Pos2D(x, self.bot_r.y), Pos2D(x, self.bot_r.y + 1))
+
+        return opening

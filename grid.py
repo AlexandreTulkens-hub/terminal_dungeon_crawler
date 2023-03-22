@@ -67,22 +67,6 @@ class Node:
         self.__right = value
 
 
-def dfs(grid, pos: Pos2D):
-
-    current_cell = grid[pos.y, pos.x]
-    current_cell.been_there = True
-    accessible_neighbours = grid.accessible_neighbours(pos)
-    for i in range(len(accessible_neighbours)):
-        rand_neighbour = accessible_neighbours.pop(randint(0, (len(accessible_neighbours) - 1)))
-        potential_cell = grid[rand_neighbour.y, rand_neighbour.x]
-
-        if potential_cell.been_there:
-            grid.add_wall(pos, rand_neighbour)
-        else:
-            dfs(grid, rand_neighbour)
-            grid.remove_wall(pos, rand_neighbour)
-
-
 class Grid:
     def __init__(self, width: int, height: int):
         """
@@ -230,17 +214,37 @@ class Grid:
 
         :param box: box we want to draw in the grid
         :return: None
-        """
-        for row in range(box.height):
-            for column in range(box.width):
-                if row == 0:  # Sets upper box border
-                    self.grid[box.top_l.y][box.top_l.x + column].up = False
-                if row == (box.height - 1):  # Sets lower box border
-                    self.grid[box.bot_r.y][box.top_l.x + column].down = False
-                if column == 0:  # Sets left box border
-                    self.grid[box.top_l.y + row][box.top_l.x].left = False
-                if column == (box.width - 1):  # Sets right box border
-                    self.grid[box.top_l.y + row][box.bot_r.x].right = False
+
+        for column in range(box.width):
+            if not column or column == box.width - 1:  # add left/right borders
+                for row in range(box.height):
+                    neighbour = - 1 if not column else 1
+                    self.add_wall(Pos2D(box.top_l.x + column, box.top_l.y + row),
+                                  Pos2D(box.top_l.x + column + neighbour, box.top_l.y + row))
+                    if not row:
+                        self.add_wall(Pos2D(box.top_l.x + column, box.top_l.y + row),
+                                      Pos2D(box.top_l.x + column, box.top_l.y + row - 1))
+                    if row == box.height - 1:
+                        self.add_wall(Pos2D(box.top_l.x + column, box.top_l.y + row),
+                                      Pos2D(box.top_l.x + column, box.top_l.y + row + 1))
+            else:  # add up/down borders
+                self.add_wall(Pos2D(box.top_l.x + column, box.top_l.y),
+                              Pos2D(box.top_l.x + column, box.top_l.y - 1))
+                self.add_wall(Pos2D(box.top_l.x + column, box.bot_r.y),
+                              Pos2D(box.top_l.x + column, box.bot_r.y + 1))
+            """
+        left_col = box.top_l.x
+        right_col = box.bot_r.x
+        for row in range(box.top_l.y, box.bot_r.y + 1):
+            self.add_wall(Pos2D(left_col, row), Pos2D(left_col - 1, row))
+            self.add_wall(Pos2D(right_col, row), Pos2D(right_col + 1, row))
+
+        # Add top and bottom borders
+        top_row = box.top_l.y
+        bottom_row = box.bot_r.y
+        for col in range(box.top_l.x, box.bot_r.x + 1):
+            self.add_wall(Pos2D(col, top_row), Pos2D(col, top_row - 1))
+            self.add_wall(Pos2D(col, bottom_row), Pos2D(col, bottom_row + 1))
 
     def accessible_neighbours(self, pos: Pos2D):
         """
@@ -273,6 +277,29 @@ class Grid:
         :rtype: Grid
         """
         spanningTree = deepcopy(self)
-        start_pos = Pos2D(randint(0, self.width - 1), randint(0, self.height - 1))
+        start_pos = Pos2D(0, 0)
         dfs(spanningTree, start_pos)
         return spanningTree
+
+
+def dfs(grid: Grid, pos: Pos2D):
+    """
+    depth first search algorithm that will generate a maze
+
+    :param grid: grid in which you generate the maze
+    :param pos: pos of the grid we look at
+    :return:
+    """
+
+    current_cell = grid[pos.y, pos.x]
+    current_cell.been_there = True
+    accessible_neighbours = grid.accessible_neighbours(pos)
+    for i in range(len(accessible_neighbours)):
+        rand_neighbour = accessible_neighbours.pop(randint(0, (len(accessible_neighbours) - 1)))
+        potential_cell = grid[rand_neighbour.y, rand_neighbour.x]
+
+        if potential_cell.been_there:
+            grid.add_wall(pos, rand_neighbour)
+        else:
+            dfs(grid, rand_neighbour)
+            grid.remove_wall(pos, rand_neighbour)

@@ -214,25 +214,8 @@ class Grid:
 
         :param box: box we want to draw in the grid
         :return: None
-
-        for column in range(box.width):
-            if not column or column == box.width - 1:  # add left/right borders
-                for row in range(box.height):
-                    neighbour = - 1 if not column else 1
-                    self.add_wall(Pos2D(box.top_l.x + column, box.top_l.y + row),
-                                  Pos2D(box.top_l.x + column + neighbour, box.top_l.y + row))
-                    if not row:
-                        self.add_wall(Pos2D(box.top_l.x + column, box.top_l.y + row),
-                                      Pos2D(box.top_l.x + column, box.top_l.y + row - 1))
-                    if row == box.height - 1:
-                        self.add_wall(Pos2D(box.top_l.x + column, box.top_l.y + row),
-                                      Pos2D(box.top_l.x + column, box.top_l.y + row + 1))
-            else:  # add up/down borders
-                self.add_wall(Pos2D(box.top_l.x + column, box.top_l.y),
-                              Pos2D(box.top_l.x + column, box.top_l.y - 1))
-                self.add_wall(Pos2D(box.top_l.x + column, box.bot_r.y),
-                              Pos2D(box.top_l.x + column, box.bot_r.y + 1))
-            """
+        """
+        # Add left and right borders
         left_col = box.top_l.x
         right_col = box.bot_r.x
         for row in range(box.top_l.y, box.bot_r.y + 1):
@@ -269,6 +252,21 @@ class Grid:
 
         return neighbours
 
+    def visible_neighbours(self, visibility, pos):
+        """
+        Calculate the potential visible neighbours of a position in a grid
+        :param visibility: the radius in which things are visible
+        :param pos: position in middle of this radius
+        :return: the list of visible neighbours
+        """
+        vision = visibility + 1 if visibility % 2 else visibility
+        neighbours = []
+        for y in range(int(pos.y - (vision / 2) - 1), int(pos.y + (vision / 2) + 1)):
+            for x in range(int(pos.x - (vision / 2) - 1), int(pos.x + (vision / 2) + 1)):
+                neighbours.append(Pos2D(x, y))
+
+        return neighbours
+
     def spanning_tree(self):
         """
         Extracts a spanning tree out of the grid
@@ -294,6 +292,7 @@ def dfs(grid: Grid, pos: Pos2D):
     current_cell = grid[pos.y, pos.x]
     current_cell.been_there = True
     accessible_neighbours = grid.accessible_neighbours(pos)
+    # for each accessible neighbour continue the dfs
     for i in range(len(accessible_neighbours)):
         rand_neighbour = accessible_neighbours.pop(randint(0, (len(accessible_neighbours) - 1)))
         potential_cell = grid[rand_neighbour.y, rand_neighbour.x]

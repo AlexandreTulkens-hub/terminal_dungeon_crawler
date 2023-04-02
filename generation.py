@@ -8,35 +8,13 @@ import random
 from grid import Grid
 from pos2d import Pos2D
 from box import Box
-from renderer import GridRenderer
-
-
-def rooms_overlapping(existing_r: Pos2D, r: Pos2D):
-    """
-    verifies if 2 rooms overlap or not
-
-    :param existing_r: room that already exists
-    :param r: new potential room
-    :return: True if the new potential room can't be created, False otherwise
-    :rtype: bool
-    """
-    ex_tl_x = existing_r[0].x - 2
-    ex_tl_y = existing_r[0].y - 2
-    ex_br_x = existing_r[1].x + 2
-    ex_br_y = existing_r[1].y + 2
-
-    # Check for horizontal overlap
-    if ex_tl_x <= r[1].x and ex_br_x >= r[0].x:
-        # Check for vertical overlap
-        if ex_tl_y <= r[1].y and ex_br_y >= r[0].y:
-            return True
-    return False
 
 
 class DungeonGenerator:
 
     def __init__(self, params: argparse.Namespace):
-
+        self.width = params.width
+        self.height = params.height
         self.rooms = params.rooms
         self.seed = params.seed
         self.minwidth = params.minwidth
@@ -45,8 +23,7 @@ class DungeonGenerator:
         self.maxheight = params.maxheight
         self.openings = params.openings
         self.hard = params.hard
-        self.width = params.width
-        self.height = params.height
+        self.bonuses = params.bonuses
 
     def create_rooms_coordinates(self):
         """
@@ -100,12 +77,24 @@ class DungeonGenerator:
                     dungeon[row, column].right = False
         return dungeon
 
+    def create_bonus_coordinates(self):
+        bonuses_list = []
+        if not self.bonuses:
+            return bonuses_list
+        self.bonuses -= 1
+        bonuses_list.append(Pos2D(random.randint(0, self.width), random.randint(0, self.height)))
+        bonuses_list += self.create_bonus_coordinates()
+        return bonuses_list
+
     def generate(self):
         """
         Generates a dungeon with its rooms, its maze and its exits
 
-        :return:A dictionary with the following keys and values:
+        :return: A dictionary with the following keys and values:
              - 'grid': (Grid) the grid containing the dungeon.
+             - 'bonuses': (list[Pos2D]) coordinates of all lamp recharges
+             - 'start_position': (Pos2D) coordinates of starting position of player
+             - 'exit_position' : (Pos2D) coordinates of dungeon exit
         :rtype: dict
         """
         dungeon = Grid(self.width, self.height)  # create empty dungeon
@@ -122,15 +111,45 @@ class DungeonGenerator:
         else:
             # create the two mazes that will get merged
             span1 = dungeon.spanning_tree()
-            GridRenderer(span1).show()
             span2 = dungeon.spanning_tree()
-            GridRenderer(span2).show()
 
             dungeon = self.merge_spanning_tree(span1, span2)
 
         # create the entrances/exits
         for box in boxes:
-            opening = box.opening_coordinates()
-            dungeon.remove_wall(opening[0], opening[1])
+            for i in range(self.openings):
+                opening = box.opening_coordinates()
+                dungeon.remove_wall(opening[0], opening[1])
 
-        return {'grid': dungeon}
+        bonus_list = self.create_bonus_coordinates()
+
+        # create starting position of player and exit position of dungeon
+        start_pos = Pos2D(random.randint(0, self.width), random.randint(0, self.height))
+        exit_pos = Pos2D(random.randint(0, self.width), random.randint(0, self.height))
+        while start_pos in bonus_list or start_pos == exit_pos:
+            start_pos = Pos2D(random.randint(0, self.width), random.randint(0, self.height))
+            exit_pos = Pos2D(random.randint(0, self.width), random.randint(0, self.height))
+
+        return {'grid': dungeon, 'bonuses': bonus_list, 'start_position': start_pos, 'exit_position': exit_pos}
+
+
+def rooms_overlapping(existing_r: Pos2D, r: Pos2D):
+    """
+    verifies if 2 rooms overlap or not
+
+    :param existing_r: room that already exists
+    :param r: new potential room
+    :return: True if the new potential room can't be created, False otherwise
+    :rtype: bool
+    """
+    ex_tl_x = existing_r[0].x - 2
+    ex_tl_y = existing_r[0].y - 2
+    ex_br_x = existing_r[1].x + 2
+    ex_br_y = existing_r[1].y + 2
+
+    # Check for horizontal overlap
+    if ex_tl_x <= r[1].x and ex_br_x >= r[0].x:
+        # Check for vertical overlap
+        if ex_tl_y <= r[1].y and ex_br_y >= r[0].y:
+            return True
+    return False

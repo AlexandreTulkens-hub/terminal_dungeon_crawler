@@ -39,12 +39,12 @@ class Box:
         """
 
         x = randint(self.top_l.x, self.bot_r.x)
-        if x == self.top_l.x or x == self.bot_r.x:
-            y = randint(self.top_l.y, self.bot_r.y)
-            if x == self.top_l.x:
-                opening = (Pos2D(self.top_l.x, y), Pos2D(self.top_l.x - 1, y))
-            else:
-                opening = (Pos2D(self.bot_r.x, y), Pos2D(self.bot_r.x + 1, y))
+        y = randint(self.top_l.y, self.bot_r.y)
+
+        if x == self.top_l.x:
+            opening = (Pos2D(self.top_l.x, y), Pos2D(self.top_l.x - 1, y))
+        elif x == self.bot_r.x:
+            opening = (Pos2D(self.bot_r.x, y), Pos2D(self.bot_r.x + 1, y))
         else:
             random = randint(0, 1)
             if not random:

@@ -18,13 +18,19 @@ class Pos2D:
 
     @property
     def x(self):
-        """returns the value of x"""
         return self.__x
+
+    @x.setter
+    def x(self, value):
+        self.__x = value
 
     @property
     def y(self):
-        """returns the value of y"""
         return self.__y
+
+    @y.setter
+    def y(self, value):
+        self.__y = value
 
     def __hash__(self):
         """

@@ -1,4 +1,3 @@
-from grid import Grid
 from pos2d import Pos2D
 import argparse
 
@@ -10,11 +9,10 @@ class Player:
         it's coordinates and it's vision
 
         :param start_position: starting point of player in grid
-        :param params: gonna use the visibility of the player on the grid and
-                       when the visibility will decrement
+        :param params: Use view_radius and torch_delay
         """
         self.__pos = start_position
-        self.torch_radius = params.view_radius
+        self.__torch_radius = params.view_radius
         self.__torch_delay = params.torch_delay
         self.count_movement = 0
 
@@ -26,21 +24,53 @@ class Player:
     def pos(self, value):
         self.__pos = value
 
-    def get_torch_radius(self):
-        return self.torch_radius
+    @property
+    def torch_radius(self):
+        return self.__torch_radius
 
-    def move(self, direction: chr):
-        if direction == "z":
-            self.pos.y -= 1
-        elif direction == "q":
-            self.pos.x -= 1
-        elif direction == "s":
-            self.pos.y += 1
-        else:
-            self.pos.x += 1
+    @torch_radius.setter
+    def torch_radius(self, value):
+        self.__torch_radius = value
 
+    @property
+    def torch_delay(self):
+        return self.__torch_delay
+
+    def moved(self):
+        """
+        counts movement, checks for torch radius
+        :return: None
+        """
         self.count_movement += 1
         if self.count_movement % self.torch_delay == 0:
             self.torch_radius -= 1
 
-        return Pos2D(self.pos.x, self.pos.y)
+    def move_up(self):
+        """
+        move player up
+        """
+        self.pos.y -= 1
+        self.moved()
+
+    def move_down(self):
+        """
+        move player down
+        """
+        self.pos.y += 1
+        self.moved()
+
+    def move_left(self):
+        """
+        move player left
+        :return:
+        """
+        self.pos.x -= 1
+        self.moved()
+
+    def move_right(self):
+        """
+        move player right
+        :return:
+        """
+        self.pos.x += 1
+        self.moved()

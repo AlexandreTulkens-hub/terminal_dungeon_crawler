@@ -12,14 +12,14 @@ from random import randint
 class Node:
     def __init__(self, up: bool, down: bool, left: bool, right: bool):
         """
-                Create a new Node object with booleans as border indicators.
-                (True for no border, False for border)
+        Create a new Node object with booleans as border indicators.
+        (True for no border, False for border)
 
-                :param up: Upper border of node
-                :param down: Lower border of node
-                :param left: left border of node
-                :param right: right border of node
-                """
+        :param up: Upper border of node
+        :param down: Lower border of node
+        :param left: left border of node
+        :param right: right border of node
+        """
         self.__up = up
         self.__down = down
         self.__left = left
@@ -252,20 +252,20 @@ class Grid:
 
         return neighbours
 
-    def visible_neighbours(self, visibility, pos):
-        """
+    """def visible_neighbours(self, visibility, pos):
+        
         Calculate the potential visible neighbours of a position in a grid
         :param visibility: the radius in which things are visible
         :param pos: position in middle of this radius
         :return: the list of visible neighbours
-        """
+        
         vision = visibility + 1 if visibility % 2 else visibility
         neighbours = []
         for y in range(int(pos.y - (vision / 2) - 1), int(pos.y + (vision / 2) + 1)):
             for x in range(int(pos.x - (vision / 2) - 1), int(pos.x + (vision / 2) + 1)):
                 neighbours.append(Pos2D(x, y))
 
-        return neighbours
+        return neighbours"""
 
     def spanning_tree(self):
         """
@@ -286,7 +286,7 @@ def dfs(grid: Grid, pos: Pos2D):
 
     :param grid: grid in which you generate the maze
     :param pos: pos of the grid we look at
-    :return:
+    :return:None
     """
 
     current_cell = grid[pos.y, pos.x]

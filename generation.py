@@ -35,13 +35,13 @@ class DungeonGenerator:
         nb_rooms = self.rooms
         rooms_coordinates = set()
         # max coordinates of tl corner of a room
-        x_max = self.width - self.minwidth - 2  # - 2 because room need to have a distance of 1 with the borders of grid
-        y_max = self.height - self.minheight - 2
+        x_max = self.width - self.minwidth - 2  # - 2 because room needs distance of 1 with grid borders
+        y_max = self.height - self.minheight - 2  # and because inclusive range of randint
         for i in range(nb_rooms):
             room = tuple()
             found = False
             while not found:
-                x_tl = random.randint(1, x_max)
+                x_tl = random.randint(2, x_max)
                 y_tl = random.randint(1, y_max)
                 # take the min because sometimes bottom right corner will surpass the borders of grid
                 x_br = random.randint(x_tl + self.minwidth, min(x_tl + self.maxwidth, self.width - 2))
@@ -54,6 +54,22 @@ class DungeonGenerator:
             rooms_coordinates.add(room)
 
         return rooms_coordinates
+
+    def create_bonus_coordinates(self):
+        """
+        list of all bonuses
+
+        :rtype: List[Pos2D]
+        """
+        bonuses_list = []
+        for _ in range(self.bonuses):
+            bonus = Pos2D(random.randint(0, self.width-1), random.randint(0, self.height-1))
+            while bonus in bonuses_list:
+                bonus = Pos2D(random.randint(0, self.width-1), random.randint(0, self.height-1))
+            bonuses_list.append(bonus)
+
+        return bonuses_list
+
 
     def merge_spanning_tree(self, span1: Grid, span2: Grid):
         """
@@ -77,18 +93,9 @@ class DungeonGenerator:
                     dungeon[row, column].right = False
         return dungeon
 
-    def create_bonus_coordinates(self):
-        bonuses_list = []
-        if not self.bonuses:
-            return bonuses_list
-        self.bonuses -= 1
-        bonuses_list.append(Pos2D(random.randint(0, self.width), random.randint(0, self.height)))
-        bonuses_list += self.create_bonus_coordinates()
-        return bonuses_list
-
     def generate(self):
         """
-        Generates a dungeon with its rooms, its maze and its exits
+        Generates a dungeon with its rooms, its player and its exit
 
         :return: A dictionary with the following keys and values:
              - 'grid': (Grid) the grid containing the dungeon.
@@ -98,14 +105,14 @@ class DungeonGenerator:
         :rtype: dict
         """
         dungeon = Grid(self.width, self.height)  # create empty dungeon
-        boxes = []  # going to contain all the rooms
-        rooms = self.create_rooms_coordinates()  # create rooms
-        # add rooms to dungeon
-        counter = 0
-        for room in rooms:
-            boxes.append(Box(room[0], room[1]))
-            dungeon.isolate_box(boxes[counter])
-            counter += 1
+        rooms = []  # going to contain all the rooms
+        room_coordinates = self.create_rooms_coordinates()  # create room coordinates
+        bonus_list = self.create_bonus_coordinates()  # create position of bonuses
+
+        # create and add rooms to dungeon
+        for coordinate in room_coordinates:
+            rooms.append(Box(coordinate[0], coordinate[1]))
+            dungeon.isolate_box(rooms[-1])
         if self.hard:
             dungeon = dungeon.spanning_tree()
         else:
@@ -116,24 +123,22 @@ class DungeonGenerator:
             dungeon = self.merge_spanning_tree(span1, span2)
 
         # create the entrances/exits
-        for box in boxes:
+        for room in rooms:
             for i in range(self.openings):
-                opening = box.opening_coordinates()
+                opening = room.opening_coordinates()
                 dungeon.remove_wall(opening[0], opening[1])
 
-        bonus_list = self.create_bonus_coordinates()
-
         # create starting position of player and exit position of dungeon
-        start_pos = Pos2D(random.randint(0, self.width), random.randint(0, self.height))
-        exit_pos = Pos2D(random.randint(0, self.width), random.randint(0, self.height))
+        start_pos = Pos2D(random.randint(0, self.width - 1), random.randint(0, self.height - 1))
+        exit_pos = Pos2D(random.randint(0, self.width - 1), random.randint(0, self.height - 1))
         while start_pos in bonus_list or start_pos == exit_pos:
-            start_pos = Pos2D(random.randint(0, self.width), random.randint(0, self.height))
-            exit_pos = Pos2D(random.randint(0, self.width), random.randint(0, self.height))
+            start_pos = Pos2D(random.randint(0, self.width - 1), random.randint(0, self.height - 1))
+            exit_pos = Pos2D(random.randint(0, self.width - 1), random.randint(0, self.height - 1))
 
         return {'grid': dungeon, 'bonuses': bonus_list, 'start_position': start_pos, 'exit_position': exit_pos}
 
 
-def rooms_overlapping(existing_r: Pos2D, r: Pos2D):
+def rooms_overlapping(existing_r: tuple[Pos2D, Pos2D], r: tuple[Pos2D, Pos2D]):
     """
     verifies if 2 rooms overlap or not
 
